@@ -7,12 +7,12 @@ import mset
 import os
 import json
 
-project_dir = "E:/projects/intel_ssd/asset/charactor/aurora/"
+project_dir = "E:/projects/ssd/asset/charactor/aurora/"
 source_dir = "assets/"
 model_dir = "E:/projects/marmoset/models/"
 model_low_dir =""
 model_high_dir=""
-material_dir ="E:/source/materials/sample_nike/"
+material_dir ="E:/source/materials/sample/"
 export_dir=""
 frames_dir=""
 textureU = "1"
