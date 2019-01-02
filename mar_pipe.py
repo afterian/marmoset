@@ -7,16 +7,20 @@ import mset
 import os
 import json
 
-project_dir = "E:/projects/ssd/asset/charactor/aurora/"
+project_dir = "E:/projects/intel_ssd/asset/charactor/aurora/"
 source_dir = "assets/"
 model_dir = "E:/projects/marmoset/models/"
 model_low_dir =""
 model_high_dir=""
-material_dir ="E:/source/materials/sample/"
+material_dir ="E:/projects/intel_ssd/asset/charactor/aurora/textures/pbr/"
 export_dir=""
 frames_dir=""
 textureU = "1"
 textureV = "1"
+model_name = "body"
+material_name =""
+udim = "1001"
+
 
 # File formats
 formats = [
@@ -28,11 +32,21 @@ formats = [
     "bmp"
 ]
 
+#suffix's for Spec gloss
 sufx = {
     "albedo":"_color.png",
     "surface":"_bumpMap.png",
     "microsurface":"_reflectionGlossiness.png",
     "reflectivy":"_reflectionColor.png",
+    }
+
+#suffix for Metal roughness
+sufr = {
+    "albedo":"_BaseColor.png",
+    "surface":"_Normal.png",
+    "microsurface":"_Roughness.png",
+    "reflectivy":"_Metallic.png",
+    "height":"_height"
     }
 
 ###### get_project_folder v.01
@@ -53,6 +67,7 @@ def get_material_folder() :
         material_dir = path
     print (path)
 
+
 ###### get_model_folder v.01
 ## gets the directory for the root of the scenes
 def get_model_folder() :
@@ -67,7 +82,7 @@ def get_model_folder() :
 def create_mat_images ():
     print ("building simple Sp gloss shader")
     # Determine search area
-    search_dir = material_dir
+    search_dir = material_folder_field.value
     files = os.listdir(search_dir)
     first_file = files[0]
     #gets the material name prefix
@@ -93,13 +108,40 @@ def create_mat_images ():
 
 
 
-
+def import_mats():
     ## import pipeline pbrs.
-    #impMat=mset.importMaterial("E:/source/materials/sample/sample.sbsar", "sample")
-    #impMat=mset.importMaterial(first_file, "sample")
-    #impMat=mset.importMaterial(first_file, matName)
-    #impMatb=mset.importMaterial(secondfile, matName)
+    material_dir = material_folder_field.value
+    mats = os.listdir(material_dir)
+    print (mats)
+    matid = 0
+    for m in mats:
 
+        search_dir = (material_folder_field.value + mats[matid])
+        files = os.listdir(search_dir)
+        first_file = files[0]
+        #gets the material name prefix
+        prefix = first_file.split(sufr["albedo"])
+        matName = prefix[0]
+        print (matName)
+        #matNameb = (prefix[0]+prefix[1])
+        #finds images according to naming convensions
+        img_albedo = (search_dir + "/" +matName + sufr["albedo"])
+        img_normal = (search_dir + "/" + matName + sufr["surface"])
+        img_gloss = (search_dir + "/" + matName + sufr["microsurface"])
+        img_specular = (search_dir + "/" + matName + sufr["reflectivy"])
+
+        mat = mset.Material(name=matName)
+        mat.getSubroutine("surface").setField( "Normal Map", mset.Texture(img_normal))
+        #mat.setSubroutine("microsurface","Gloss")
+        mat.getSubroutine("microsurface").setField( "Roughness Map", mset.Texture(img_gloss))
+        mat.getSubroutine("albedo").setField( "Albedo Map", mset.Texture(img_albedo))
+        #mat.setSubroutine("reflectivity","Specular")
+        mat.getSubroutine("reflectivity").setField( "Metalness Map", mset.Texture(img_specular))
+
+        matid = matid + 1
+
+
+#Json Support
 def show_json_data ():
     data_loc = open((material_dir + "zdata.json")).read()
     mat_data = json.loads(data_loc)
@@ -147,6 +189,14 @@ model_folder_field = mset.UITextField()
 model_folder_field.value = model_dir
 settings_drawer.addElement(model_folder_field)
 
+#model
+settings_drawer.addReturn()
+settings_drawer.addElement(mset.UILabel("model_name"))
+
+model_name = mset.UITextField()
+model_name.value = model_name
+settings_drawer.addElement(model_name)
+
 #### import drawer
 
 window.addReturn()
@@ -154,6 +204,11 @@ import_drawer_ui = mset.UIDrawer(name="import")
 import_drawer = mset.UIWindow(name="", register=False)
 import_drawer_ui.containedControl = import_drawer
 window.addElement(import_drawer_ui)
+
+import_mat_images_button = mset.UIButton("Material from images_pbg")
+import_mat_images_button.onClick = import_mats
+import_drawer.addElement(import_mat_images_button)
+
 
 #### create drawer
 
@@ -163,7 +218,7 @@ create_drawer = mset.UIWindow(name="", register=False)
 create_drawer_ui.containedControl = create_drawer
 window.addElement(create_drawer_ui)
 
-create_mat_images_button = mset.UIButton("Material from images")
+create_mat_images_button = mset.UIButton("Material from images_sp")
 create_mat_images_button.onClick = create_mat_images
 create_drawer.addElement(create_mat_images_button)
 
@@ -179,8 +234,7 @@ close_button.onClick = lambda: mset.shutdownPlugin()
 window.addElement(close_button)
 
 
-
-
+#end
 
 
 
